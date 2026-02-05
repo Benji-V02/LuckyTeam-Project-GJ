@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class CameraInteractAnchor : MonoBehaviour
 {
@@ -10,40 +11,35 @@ public class CameraInteractAnchor : MonoBehaviour
     [SerializeField] private float zOffset = 0f;
 
     [Header("UI")]
-    [SerializeField] private GameObject uiElement;
+    [SerializeField] private TextMeshProUGUI uiText;
 
     private void LateUpdate()
     {
         if (!cameraTransform) return;
 
-        Vector3 pos = transform.position;   // Y ostáva nedotknuté
+        Vector3 pos = transform.position;   // Y sa nemení
         pos.x = cameraTransform.position.x + xOffset;
         pos.z = cameraTransform.position.z + zOffset;
-
         transform.position = pos;
     }
 
     private void OnDisable()
     {
-        DisableUI();
+        HideUI();
     }
 
     private void OnDestroy()
     {
-        DisableUI();
+        HideUI();
     }
 
-    private void DisableUI()
+    private void HideUI()
     {
-        if (uiElement != null)
+        if (uiText != null)
         {
-            uiElement.SetActive(false);
+            Color c = uiText.color;
+            c.a = 0f;           // alpha na 0
+            uiText.color = c;
         }
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawSphere(transform.position, 0.2f);
     }
 }
