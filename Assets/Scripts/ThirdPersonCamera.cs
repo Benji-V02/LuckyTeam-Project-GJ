@@ -10,6 +10,8 @@ public class ThirdPersonCamera : MonoBehaviour
     [Header("Camera Settings")]
     [SerializeField] private float mouseSensitivity = 300f;
     [SerializeField] private float rotationSpeed = 10f;
+    [SerializeField] private bool lockVerticalAngle = false; // Zapni pre pevn√Ω uhol
+    [SerializeField] private float fixedVerticalAngle = 35f; // Pevn√Ω uhol kamery (keƒè je lockVerticalAngle = true)
 
     [Header("Camera Position")]
     [SerializeField] private float cameraDistance = 5f;
@@ -41,6 +43,12 @@ public class ThirdPersonCamera : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         currentDistance = cameraDistance;
+        
+        // Ak je pevn√Ω uhol zapnut√Ω, nastav ho hneƒè na zaƒçiatku
+        if (lockVerticalAngle)
+        {
+            rotationX = fixedVerticalAngle;
+        }
     }
 
     private void Update()
@@ -57,18 +65,27 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private void HandleMouseInput()
     {
-        // ZÌskaj mouse input
+        // Z√≠skaj mouse input
         float mouseX = Input.GetAxisRaw("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxisRaw("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-        // Rot·cia kamery
+        // Horizont√°lna rot√°cia (v≈ædy funguje)
         rotationY += mouseX;
-        rotationX -= mouseY;
+        
+        if (lockVerticalAngle)
+        {
+            // PEVN√ù UHOL - ignoruj vertik√°lny mouse input
+            rotationX = fixedVerticalAngle;
+        }
+        else
+        {
+            // NORM√ÅLNY RE≈ΩIM - vertik√°lny mouse input funguje
+            rotationX -= mouseY;
+            // Limit vertik√°lnej rot√°cie (nem√¥≈æe≈° sa pozrie≈• √∫plne hore/dolu)
+            rotationX = Mathf.Clamp(rotationX, -35f, 70f);
+        }
 
-        // Limit vertik·lnej rot·cie (nemÙûeö sa pozrieù ˙plne hore/dolu)
-        rotationX = Mathf.Clamp(rotationX, -35f, 70f);
-
-        // Aplikuj rot·ciu na kameru a orientation
+        // Aplikuj rot√°ciu na kameru a orientation
         transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
         orientation.rotation = Quaternion.Euler(0f, rotationY, 0f);
     }
@@ -83,18 +100,18 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private void UpdateCameraPosition()
     {
-        // VypoËÌtaj z·kladn˙ target pozÌciu
+        // Vypoƒç√≠taj z√°kladn√∫ target poz√≠ciu
         Vector3 targetDir = transform.rotation * new Vector3(shoulderOffset, 0f, -currentDistance);
         Vector3 targetPos = player.position + Vector3.up * cameraHeight + targetDir;
 
-        // Collision detection - raycast od hr·Ëa ku kamere
+        // Collision detection - raycast od hr√°ƒça ku kamere
         RaycastHit hit;
         Vector3 directionToCamera = targetPos - (player.position + Vector3.up * cameraHeight);
 
         if (Physics.Raycast(player.position + Vector3.up * cameraHeight, directionToCamera.normalized,
             out hit, currentDistance, collisionLayers))
         {
-            // Ak nieËo blokuje kameru, posuÚ ju bliûöie
+            // Ak nieƒço blokuje kameru, posu≈à ju bli≈æ≈°ie
             targetPos = hit.point - directionToCamera.normalized * collisionOffset;
         }
 
@@ -104,7 +121,7 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private void UpdatePlayerRotation()
     {
-        // Ot·Ëaj player model smerom kde sa h˝be
+        // Ot√°ƒçaj player model smerom kde sa h√Ωbe
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
         Vector3 inputDir = orientation.forward * verticalInput + orientation.right * horizontalInput;
