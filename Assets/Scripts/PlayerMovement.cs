@@ -1,6 +1,10 @@
 using UnityEngine;
-using System.Diagnostics;
 
+/// <summary>
+/// Kompletn˝ Player Movement s Animator Parameters
+/// OPRAVEN¡ VERZIA - Synchronizovan˝ Dash s anim·ciou
+/// BEZ isSprinting parametra - len isMoving
+/// </summary>
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
@@ -19,9 +23,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float dashSpeed = 20f;
     [SerializeField] private float dashDuration = 0.2f;
     [SerializeField] private float dashCooldown = 1f;
+    [SerializeField] private AnimationCurve dashCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     private bool isDashing = false;
     private bool canDash = true;
     private float dashTimer;
+    private Vector3 dashDirection;
 
     [Header("Ground Check")]
     [SerializeField] private float playerHeight = 2f;
@@ -33,6 +39,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
     [SerializeField] private KeyCode dashKey = KeyCode.LeftControl;
 
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+
     // References
     private Rigidbody rb;
     private Vector3 moveDirection;
@@ -43,6 +52,16 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
+
+        // Get animator if not assigned
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>();
+            if (animator == null)
+            {
+                UnityEngine.Debug.LogWarning("Animator not found! Please assign it in the inspector.");
+            }
+        }
     }
 
     private void Update()
@@ -52,6 +71,7 @@ public class PlayerMovement : MonoBehaviour
 
         GetInput();
         SpeedControl();
+        UpdateAnimationParameters();
 
         // Handle drag
         if (isGrounded && !isDashing)
@@ -62,12 +82,11 @@ public class PlayerMovement : MonoBehaviour
         // Handle dash timer
         if (isDashing)
         {
-            UnityEngine.Debug.Log("Dashing...");
-
-            dashTimer -= Time.deltaTime;
-            if (dashTimer <= 0)
+            dashTimer += Time.deltaTime;
+            if (dashTimer >= dashDuration)
             {
                 isDashing = false;
+                dashTimer = 0f;
             }
         }
     }
@@ -83,7 +102,7 @@ public class PlayerMovement : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
 
         // Jump
-        if (Input.GetKey(jumpKey) && readyToJump && isGrounded)
+        if (Input.GetKeyDown(jumpKey) && readyToJump && isGrounded)
         {
             readyToJump = false;
             Jump();
@@ -102,14 +121,20 @@ public class PlayerMovement : MonoBehaviour
         // Calculate movement direction
         moveDirection = transform.forward * verticalInput + transform.right * horizontalInput;
 
-        // Dash movement
+        // Dash movement - synchronizovan˝ s anim·ciou
         if (isDashing)
         {
-            rb.linearVelocity = new Vector3(moveDirection.normalized.x * dashSpeed, rb.linearVelocity.y, moveDirection.normalized.z * dashSpeed);
+            // Pouûitie AnimationCurve pre plynul˝ dash
+            float dashProgress = dashTimer / dashDuration;
+            float curveValue = dashCurve.Evaluate(dashProgress);
+
+            // Aplikuj dash silu podæa krivky
+            Vector3 dashVelocity = dashDirection * dashSpeed * curveValue;
+            rb.linearVelocity = new Vector3(dashVelocity.x, rb.linearVelocity.y, dashVelocity.z);
             return;
         }
 
-        // Determine current speed
+        // Determine current speed (sprint alebo walk)
         float currentSpeed = Input.GetKey(sprintKey) ? sprintSpeed : walkSpeed;
 
         // On ground
@@ -136,7 +161,7 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
 
-        // Limit velocity if needed
+        // Limit velocity based on sprint or walk
         float currentSpeed = Input.GetKey(sprintKey) ? sprintSpeed : walkSpeed;
 
         if (flatVel.magnitude > currentSpeed)
@@ -146,12 +171,39 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void UpdateAnimationParameters()
+    {
+        if (animator == null) return;
+
+        // Zistiù Ëi sa hr·Ë pohybuje
+        bool isMoving = horizontalInput != 0 || verticalInput != 0;
+
+        // Calculate speed for blend trees (ak pouûÌvaö)
+        Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        float speed = flatVel.magnitude;
+
+        // Nastaviù Bool parameters (BEZ isSprinting)
+        animator.SetBool("isMoving", isMoving);
+        animator.SetBool("isGrounded", isGrounded);
+        animator.SetBool("isDashing", isDashing);
+
+        // Nastaviù Float parameter pre speed
+        // Animator Controller pouûije t˙to hodnotu na rozlÌöenie walk vs sprint
+        animator.SetFloat("Speed", speed);
+    }
+
     private void Jump()
     {
         // Reset y velocity
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
 
         rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+
+        // TRIGGER jump anim·ciu
+        if (animator != null)
+        {
+            animator.SetTrigger("Jump");
+        }
     }
 
     private void ResetJump()
@@ -161,14 +213,23 @@ public class PlayerMovement : MonoBehaviour
 
     private void Dash()
     {
-        if (moveDirection == Vector3.zero) return; // Don't dash if not moving
+        if (moveDirection == Vector3.zero) return;
+
+        // Uloû smer dashu na zaËiatku
+        dashDirection = moveDirection.normalized;
 
         canDash = false;
         isDashing = true;
-        dashTimer = dashDuration;
+        dashTimer = 0f;
 
         // Reset y velocity for consistent dash
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+
+        // TRIGGER dash anim·ciu
+        if (animator != null)
+        {
+            animator.SetTrigger("Dash");
+        }
 
         Invoke(nameof(ResetDash), dashCooldown);
     }
