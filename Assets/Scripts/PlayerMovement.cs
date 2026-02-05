@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Diagnostics;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -61,6 +62,8 @@ public class PlayerMovement : MonoBehaviour
         // Handle dash timer
         if (isDashing)
         {
+            UnityEngine.Debug.Log("Dashing...");
+
             dashTimer -= Time.deltaTime;
             if (dashTimer <= 0)
             {
