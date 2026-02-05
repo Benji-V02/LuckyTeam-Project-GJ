@@ -13,6 +13,11 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] private bool lockVerticalAngle = false; // Zapni pre pevný uhol
     [SerializeField] private float fixedVerticalAngle = 35f; // Pevný uhol kamery (keď je lockVerticalAngle = true)
 
+    [Header("Camera World Limits")]
+    [SerializeField] private bool lockMaxXZ = false; // Zapni pre limit max X a max Z (world space)
+    [SerializeField] private float maxX = 100f;
+    [SerializeField] private float maxZ = 100f;
+
     [Header("Camera Position")]
     [SerializeField] private float cameraDistance = 5f;
     [SerializeField] private float cameraHeight = 2f;
@@ -21,11 +26,6 @@ public class ThirdPersonCamera : MonoBehaviour
     [Header("Camera Smoothing")]
     [SerializeField] private float positionSmoothTime = 0.1f;
     [SerializeField] private float rotationSmoothTime = 0.1f;
-
-    [Header("Zoom")]
-    [SerializeField] private float minZoom = 2f;
-    [SerializeField] private float maxZoom = 8f;
-    [SerializeField] private float zoomSpeed = 2f;
 
     [Header("Collision")]
     [SerializeField] private float collisionOffset = 0.3f;
@@ -36,14 +36,12 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private Vector3 currentVelocity;
     private Vector3 targetPosition;
-    private float currentDistance;
 
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        currentDistance = cameraDistance;
-        
+
         // Ak je pevný uhol zapnutý, nastav ho hneď na začiatku
         if (lockVerticalAngle)
         {
@@ -54,7 +52,6 @@ public class ThirdPersonCamera : MonoBehaviour
     private void Update()
     {
         HandleMouseInput();
-        HandleZoom();
     }
 
     private void LateUpdate()
@@ -71,7 +68,7 @@ public class ThirdPersonCamera : MonoBehaviour
 
         // Horizontálna rotácia (vždy funguje)
         rotationY += mouseX;
-        
+
         if (lockVerticalAngle)
         {
             // PEVNÝ UHOL - ignoruj vertikálny mouse input
@@ -90,29 +87,27 @@ public class ThirdPersonCamera : MonoBehaviour
         orientation.rotation = Quaternion.Euler(0f, rotationY, 0f);
     }
 
-    private void HandleZoom()
-    {
-        // Scroll wheel zoom
-        float scrollInput = Input.GetAxis("Mouse ScrollWheel");
-        currentDistance -= scrollInput * zoomSpeed;
-        currentDistance = Mathf.Clamp(currentDistance, minZoom, maxZoom);
-    }
-
     private void UpdateCameraPosition()
     {
         // Vypočítaj základnú target pozíciu
-        Vector3 targetDir = transform.rotation * new Vector3(shoulderOffset, 0f, -currentDistance);
+        Vector3 targetDir = transform.rotation * new Vector3(shoulderOffset, 0f, -cameraDistance);
         Vector3 targetPos = player.position + Vector3.up * cameraHeight + targetDir;
 
         // Collision detection - raycast od hráča ku kamere
         RaycastHit hit;
         Vector3 directionToCamera = targetPos - (player.position + Vector3.up * cameraHeight);
 
-        if (Physics.Raycast(player.position + Vector3.up * cameraHeight, directionToCamera.normalized,
-            out hit, currentDistance, collisionLayers))
+        if (Physics.Raycast(player.position + Vector3.up * cameraHeight, directionToCamera.normalized, out hit, cameraDistance, collisionLayers))
         {
             // Ak niečo blokuje kameru, posuň ju bližšie
             targetPos = hit.point - directionToCamera.normalized * collisionOffset;
+        }
+
+        // WORLD LIMITS (max X a max Z)
+        if (lockMaxXZ)
+        {
+            if (targetPos.x > maxX) targetPos.x = maxX;
+            if (targetPos.z > maxZ) targetPos.z = maxZ;
         }
 
         // Smooth camera movement
