@@ -53,7 +53,10 @@ public class CigaretteCard : ItemCard
             return;
         }
 
-        filterObj.SetActive(true);
+        if (filterObj != null)
+        {
+            filterObj.SetActive(true);
+        }
     }
 
     private Transform FindDeepChild(Transform parent, string name)
