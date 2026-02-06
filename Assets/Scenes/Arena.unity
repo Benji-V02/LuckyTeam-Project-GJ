@@ -315,6 +315,9 @@ MonoBehaviour:
   gameWinObject: {fileID: 252011411}
   winRawImage: {fileID: 1053527516}
   winTexture: {fileID: 2800000, guid: 540ec357bf43af3478b6c76f936f4b0b, type: 3}
+  gameLostObject: {fileID: 252011411}
+  lostRawImage: {fileID: 1053527516}
+  lostTexture: {fileID: 2800000, guid: 93df6efe18912b541b2a3a20f6e84827, type: 3}
 --- !u!1 &351353227
 GameObject:
   m_ObjectHideFlags: 0
@@ -2845,7 +2848,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 410, y: 118.2}
-  m_SizeDelta: {x: 200, y: 30}
+  m_SizeDelta: {x: 200, y: 45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1488437928
 MonoBehaviour:
@@ -3145,7 +3148,7 @@ MonoBehaviour:
   mouseSensitivity: 300
   rotationSpeed: 10
   lockVerticalAngle: 0
-  fixedVerticalAngle: 35
+  fixedVerticalAngle: -180
   lockMaxXZ: 0
   maxX: 100
   maxZ: 100
@@ -3559,7 +3562,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 410, y: 180.8}
-  m_SizeDelta: {x: 200, y: 30}
+  m_SizeDelta: {x: 200, y: 45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1756715676
 MonoBehaviour:

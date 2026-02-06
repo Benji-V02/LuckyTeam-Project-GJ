@@ -24,6 +24,11 @@ public class EnemySpawner : MonoBehaviour
     public RawImage winRawImage;
     public Texture winTexture;
 
+    [Header("Game Over Screen")]
+    public GameObject gameLostObject;
+    public RawImage lostRawImage;
+    public Texture lostTexture;
+
     private Transform[] spawnPoints;
     private List<GameObject> aliveEnemies = new List<GameObject>();
 
@@ -119,9 +124,27 @@ public class EnemySpawner : MonoBehaviour
 
         if (timerText != null)
         {
-            timerText.text = "GAME OVER!";
-            timerText.color = Color.red;
+            timerText.gameObject.SetActive(false); // Skry timer
         }
+
+        // 🎮 PREHRA - Zobraz Lost screen
+        if (gameLostObject != null)
+        {
+            gameLostObject.SetActive(true);
+        }
+
+        if (lostRawImage != null && lostTexture != null)
+        {
+            lostRawImage.texture = lostTexture;
+        }
+
+        // Zamoruj hru
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        // Vypni spawner
+        this.enabled = false;
     }
 
     IEnumerator GameLoop()
@@ -299,8 +322,11 @@ public class EnemySpawner : MonoBehaviour
     {
         while (true)
         {
-            if (!timerActive && currentStage == 1)
+            // Ak čas vypršal počas Stage 1, ukonči hru
+            if (!timerActive && currentStage == 1 && currentTimer <= 0)
             {
+                Debug.Log("Time expired - GAME OVER!");
+                GameOver();
                 yield break;
             }
 
