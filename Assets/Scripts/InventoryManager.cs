@@ -15,6 +15,8 @@ public class InventoryManager : MonoBehaviour
     [Header("Inventory Mode")]
     [SerializeField] private float focusedCardRaiseY = 40f; // O koľko sa focusnutá karta vysunie vyššie
     [SerializeField] private bool startInInventoryMode = false;
+    [SerializeField] private bool InventoryModeOnly = false;
+    [SerializeField] private bool canUseCards = false;
 
     private List<GameObject> itemCards = new List<GameObject>();
     private readonly Dictionary<RectTransform, Coroutine> activeMoveCoroutines = new Dictionary<RectTransform, Coroutine>();
@@ -72,7 +74,7 @@ public class InventoryManager : MonoBehaviour
     private void Update()
     {
         // TAB = zapnúť/vypnúť inventory mode
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.Tab) && !InventoryModeOnly)
         {
             // Ak sme v inventory mode a ideme ho vypnúť:
             // voliteľne (toggle) najprv focusni najľavejšiu kartu (index 0) a až potom prejdime do collapsed layoutu.
@@ -100,6 +102,12 @@ public class InventoryManager : MonoBehaviour
                 focusedIndex = Mathf.Clamp(focusedIndex, 0, Mathf.Max(0, itemCards.Count - 1));
                 RefreshLayoutAnimated();
             }
+        }
+
+        // F = použitie focused karty (len keď je inventoryMode)
+        if (inventoryMode && Input.GetKeyDown(KeyCode.F) && canUseCards)
+        {
+            UseFocusedCard();
         }
 
 
@@ -188,6 +196,8 @@ public class InventoryManager : MonoBehaviour
             focusedIndex = 0;
 
         RefreshLayoutAnimated();
+
+        AttachCardLogicByName(newCard, itemName);
 
         Debug.Log($"✓ Item '{itemName}' added to inventory! Total items: {itemCards.Count}");
     }
@@ -372,4 +382,61 @@ public class InventoryManager : MonoBehaviour
         if (activeMoveCoroutines.ContainsKey(cardRect))
             activeMoveCoroutines[cardRect] = null;
     }
+
+    private void UseFocusedCard()
+    {
+        if (!inventoryMode) return;
+        if (itemCards.Count == 0) return;
+
+        focusedIndex = Mathf.Clamp(focusedIndex, 0, itemCards.Count - 1);
+        GameObject cardGO = itemCards[focusedIndex];
+
+        ItemCard card = cardGO.GetComponent<ItemCard>();
+        if (card == null)
+        {
+            Debug.LogWarning("Focused card has no ItemCard component!");
+            return;
+        }
+
+        // 1) použi
+        card.Use();
+
+        // 2) zmaž z itembaru (consume)
+        itemCards.RemoveAt(focusedIndex);
+        Destroy(cardGO);
+
+        // 3) oprav focus
+        if (focusedIndex >= itemCards.Count)
+            focusedIndex = itemCards.Count - 1;
+
+        focusedIndex = Mathf.Max(0, focusedIndex);
+
+        RefreshLayoutAnimated();
+    }
+
+    private void AttachCardLogicByName(GameObject cardGO, string itemName)
+    {
+        // normalizuj názov
+        string key = (itemName ?? "").Trim().ToLowerInvariant();
+
+        // ak by prefab náhodou mal ItemCard, odstráň ho (aby neboli 2 logiky)
+        ItemCard existing = cardGO.GetComponent<ItemCard>();
+        if (existing != null)
+            Destroy(existing);
+
+        // vyber typ podľa názvu
+        switch (key)
+        {
+            case "bomb":
+            case "bomba":
+                cardGO.AddComponent<BombCard>();
+                break;
+
+            default:
+                // fallback – aby UseFocusedCard vždy našlo ItemCard
+                cardGO.AddComponent<ItemCard>();
+                break;
+        }
+    }
+
 }
