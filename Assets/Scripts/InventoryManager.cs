@@ -432,6 +432,11 @@ public class InventoryManager : MonoBehaviour
                 cardGO.AddComponent<BombCard>();
                 break;
 
+            case "time":
+            case "timer":
+                cardGO.AddComponent<TimeCard>();
+                break;
+
             default:
                 // fallback – aby UseFocusedCard vždy našlo ItemCard
                 cardGO.AddComponent<ItemCard>();

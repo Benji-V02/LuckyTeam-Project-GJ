@@ -10,6 +10,7 @@ public class Enemy : MonoBehaviour
     [Header("Health")]
     [SerializeField] private float maxHealth = 100f;
     private float currentHealth;
+    private bool isFrozen = false;
 
     [Header("Combat")]
     [SerializeField] private float attackRange = 2f;
@@ -127,6 +128,8 @@ public class Enemy : MonoBehaviour
     private void Update()
     {
         // Ak hráč nebol nájdený, skús ho nájsť znova
+        if (isFrozen) return;
+        
         if (player == null)
         {
             FindPlayer();
@@ -247,5 +250,16 @@ public class Enemy : MonoBehaviour
 
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(transform.position, attackRange);
+    }
+
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+
+        if (rb != null && frozen)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
     }
 }
