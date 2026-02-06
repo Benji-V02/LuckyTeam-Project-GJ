@@ -12,6 +12,8 @@ public class AudioManager_fight : MonoBehaviour
 
     private void Start(){
         musicSource.clip = fight;
-        musicSource.Play();
+        if (PlayerPrefs.GetInt("MusicEnabled", 1) == 1)
+            musicSource.Play();
+
     }
 }

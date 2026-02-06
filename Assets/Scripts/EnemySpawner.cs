@@ -17,7 +17,12 @@ public class EnemySpawner : MonoBehaviour
     public TextMeshProUGUI timerText;
 
     [Header("Camera Filter")]
-    public GameObject monochromeFilterObject; // Pretiahnuť MonochromeFilter GameObject sem
+    public GameObject monochromeFilterObject;
+
+    [Header("Victory Screen")]
+    public GameObject gameWinObject;
+    public RawImage winRawImage;
+    public Texture winTexture;
 
     private Transform[] spawnPoints;
     private List<GameObject> aliveEnemies = new List<GameObject>();
@@ -195,7 +200,7 @@ public class EnemySpawner : MonoBehaviour
         SpawnMultipleEnemies(2);
         yield return StartCoroutine(WaitForAllEnemiesDead());
 
-        // Wave 2: Boss
+        // Wave 2: Boss (POSLEDNÝ!)
         currentWave = 2;
         SpawnBoss();
         yield return StartCoroutine(WaitForAllEnemiesDead());
@@ -207,10 +212,29 @@ public class EnemySpawner : MonoBehaviour
             Debug.Log("✅ MonochromeFilter VYPNUTÝ - farby späť!");
         }
 
-        // Po wave 2 začnú random spawny (1-3 sekundy)
-        yield return StartCoroutine(RandomSpawnLoop(1f, 3f));
-    }
+        // 🏆 VÍŤAZSTVO - Zobraz Win screen
+        Debug.Log("=== VICTORY! ===");
 
+        if (gameWinObject != null)
+        {
+            gameWinObject.SetActive(true);
+        }
+
+        if (winRawImage != null && winTexture != null)
+        {
+            winRawImage.texture = winTexture;
+        }
+
+        // Koniec hry - už nespawnuj ďalších nepriateľov
+
+        Time.timeScale = 0f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        this.enabled = false;
+        yield break;
+    }
     // ==================== SPAWN FUNKCIE ====================
     void SpawnMultipleEnemies(int count)
     {

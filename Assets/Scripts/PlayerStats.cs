@@ -17,6 +17,10 @@ public class PlayerStats : MonoBehaviour
     public Slider healthBar;
     public Slider staminaBar;
 
+    public GameObject gameWinObject;
+    public RawImage winRawImage;
+    public Texture deadTexture;
+
     private float staminaRegenTimer = 0f;
     private bool isRegeneratingStamina = true;
 
@@ -107,6 +111,22 @@ public class PlayerStats : MonoBehaviour
     private void Die()
     {
         Debug.Log("Hráč zomrel!");
-        // Tu pridaj logiku smrti
+
+        if (gameWinObject != null)
+        {
+            gameWinObject.SetActive(true);
+        }
+
+        if (winRawImage != null && deadTexture != null)
+        {
+            winRawImage.texture = deadTexture;
+        }
+
+        Time.timeScale = 0f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        this.enabled = false;
     }
 }

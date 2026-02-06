@@ -12,6 +12,8 @@ public class AudioManager_menu : MonoBehaviour
 
     private void Start(){
         musicSource.clip = menu;
-        musicSource.Play();
+        if (PlayerPrefs.GetInt("MusicEnabled", 1) == 1)
+            musicSource.Play();
+
     }
 }
