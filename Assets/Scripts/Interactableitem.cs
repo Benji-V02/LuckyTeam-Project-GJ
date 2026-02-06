@@ -4,20 +4,20 @@ public class InteractableItem : MonoBehaviour
 {
     [Header("Interaction Settings")]
     [SerializeField] private string itemName = "Item";
-    [SerializeField] private Sprite itemSprite; // Sprite pre kartičku (kanvica.png)
+    [SerializeField] private Sprite itemSprite;
     [SerializeField] private float interactionRadius = 2f;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
-    
+
     [Header("Visual Feedback")]
     [SerializeField] private bool showGizmo = true;
     [SerializeField] private Color gizmoColor = Color.yellow;
-    
+
     private Transform player;
     private bool playerInRange = false;
+    private bool wasInRange = false; // Pre detekciu zmeny stavu
 
     private void Start()
     {
-        // Nájdi hráča v scéne
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null)
         {
@@ -33,23 +33,52 @@ public class InteractableItem : MonoBehaviour
     {
         if (player == null) return;
 
-        // Skontroluj vzdialenosť od hráča
         float distance = Vector3.Distance(transform.position, player.position);
         playerInRange = distance <= interactionRadius;
 
-        // Ak je hráč v dosahu a stlačí klávesu E
+        // Detekcia vstupu do dosahu
+        if (playerInRange && !wasInRange)
+        {
+            ShowPickupPrompt();
+        }
+        // Detekcia opustenia dosahu
+        else if (!playerInRange && wasInRange)
+        {
+            HidePickupPrompt();
+        }
+
+        wasInRange = playerInRange;
+
+        // Interakcia
         if (playerInRange && Input.GetKeyDown(interactKey))
         {
             PickUpItem();
         }
     }
 
+    private void ShowPickupPrompt()
+    {
+        if (InteractionPopup.Instance != null)
+        {
+            InteractionPopup.Instance.Show(interactKey, itemName);
+        }
+    }
+
+    private void HidePickupPrompt()
+    {
+        if (InteractionPopup.Instance != null)
+        {
+            InteractionPopup.Instance.Hide();
+        }
+    }
+
     private void PickUpItem()
     {
-        // Vypíš správu do konzoly
         Debug.Log($"Item '{itemName}' picked up!");
 
-        // Pridaj item do inventára (zobraz kartičku v ItemBar-e)
+        // Skry popup pred zničením objektu
+        HidePickupPrompt();
+
         if (InventoryManager.Instance != null && itemSprite != null)
         {
             InventoryManager.Instance.AddItem(itemSprite, itemName);
@@ -59,20 +88,22 @@ public class InteractableItem : MonoBehaviour
             Debug.LogWarning($"Item '{itemName}' has no sprite assigned!");
         }
 
-        // Zničí objekt
         Destroy(gameObject);
     }
 
-    // Vizualizácia dosahu v editore
+    private void OnDestroy()
+    {
+        // Uisti sa, že popup sa skryje aj pri zničení objektu iným spôsobom
+        HidePickupPrompt();
+    }
+
     private void OnDrawGizmos()
     {
         if (!showGizmo) return;
-
         Gizmos.color = gizmoColor;
         Gizmos.DrawWireSphere(transform.position, interactionRadius);
     }
 
-    // Vizualizácia dosahu keď je objekt vybraný
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
