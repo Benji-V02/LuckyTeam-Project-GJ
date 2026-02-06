@@ -3411,6 +3411,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemBarParent: {fileID: 97287165}
   itemCardPrefab: {fileID: 7796485679547699527, guid: 4d73ad9782871534698c8d35a2e6cd05, type: 3}
+  bombPrefab: {fileID: 0}
   cardSpacing: 45
   animationSpeed: 0.3
   focusedCardRaiseY: 40
@@ -7187,6 +7188,9 @@ MonoBehaviour:
   staminaRegenDelay: 2
   healthBar: {fileID: 1596180469}
   staminaBar: {fileID: 803345375}
+  gameWinObject: {fileID: 0}
+  winRawImage: {fileID: 0}
+  deadTexture: {fileID: 0}
 --- !u!95 &1071531046
 Animator:
   serializedVersion: 7
@@ -10123,16 +10127,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pickablePrefabs:
-  - {fileID: 3191343766009023804, guid: 4650fe99dc07d384e811b7363657a158, type: 3}
-  - {fileID: 2822049594015832857, guid: 045b32d3bc8c46b4c8f137467ca030fc, type: 3}
+  - {fileID: 3764427594308058795, guid: 7da379865c749974190de4fc0692c93f, type: 3}
+  - {fileID: 2494373744059868197, guid: e9b50924d31c9ef41823a268634d7f99, type: 3}
   - {fileID: 6299038404998603360, guid: 72d937b0969a33b4e9b02061605ad5e9, type: 3}
   - {fileID: 2074725567675003735, guid: 20e1705c7d3354f4fb9d8b1a2f044d39, type: 3}
-  - {fileID: 3764427594308058795, guid: 7da379865c749974190de4fc0692c93f, type: 3}
   - {fileID: 1576741791864112526, guid: d30d7f9ce901b6c42b509e4f5d35b1c0, type: 3}
-  - {fileID: 1211135787600140867, guid: c4e81676d22a3d347b01af8424e24900, type: 3}
-  - {fileID: 2494373744059868197, guid: e9b50924d31c9ef41823a268634d7f99, type: 3}
-  - {fileID: 9174345803620844403, guid: 0f2bf74163d69d641a610dc490f4993f, type: 3}
-  - {fileID: 8928476451583907952, guid: 79a586b96a02d4141b642c08dd36f4a3, type: 3}
+  - {fileID: 2822049594015832857, guid: 045b32d3bc8c46b4c8f137467ca030fc, type: 3}
   targetSceneName: GatherScene
 --- !u!4 &1424589826
 Transform:

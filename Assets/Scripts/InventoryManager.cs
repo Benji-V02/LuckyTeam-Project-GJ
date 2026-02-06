@@ -7,6 +7,7 @@ public class InventoryManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private Transform itemBarParent; // ItemBar GameObject
     [SerializeField] private GameObject itemCardPrefab; // Prefab pre kartičku
+    [SerializeField] private GameObject bombPrefab;
 
     [Header("Card Settings")]
     [SerializeField] private float cardSpacing = 120f; // Vzdialenosť medzi kartičkami
@@ -429,8 +430,11 @@ public class InventoryManager : MonoBehaviour
         {
             case "bomb":
             case "bomba":
-                cardGO.AddComponent<BombCard>();
+            {
+                BombCard bombCard = cardGO.AddComponent<BombCard>();
+                bombCard.Init(bombPrefab);
                 break;
+            }
 
             case "time":
             case "timer":
