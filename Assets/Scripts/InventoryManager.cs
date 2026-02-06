@@ -442,6 +442,11 @@ public class InventoryManager : MonoBehaviour
                 cardGO.AddComponent<CigaretteCard>();
                 break;
 
+            case "kanvica":
+            case "kettle":
+                cardGO.AddComponent<KanvicaCard>();
+                break;
+
 
             default:
                 // fallback – aby UseFocusedCard vždy našlo ItemCard
