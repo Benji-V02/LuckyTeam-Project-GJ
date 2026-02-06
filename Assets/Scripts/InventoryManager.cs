@@ -15,6 +15,8 @@ public class InventoryManager : MonoBehaviour
     [Header("Inventory Mode")]
     [SerializeField] private float focusedCardRaiseY = 40f; // O koľko sa focusnutá karta vysunie vyššie
     [SerializeField] private bool startInInventoryMode = false;
+    [SerializeField] private bool InventoryModeOnly = false;
+    [SerializeField] private bool canUseCards = false;
 
     private List<GameObject> itemCards = new List<GameObject>();
     private readonly Dictionary<RectTransform, Coroutine> activeMoveCoroutines = new Dictionary<RectTransform, Coroutine>();
@@ -72,7 +74,7 @@ public class InventoryManager : MonoBehaviour
     private void Update()
     {
         // TAB = zapnúť/vypnúť inventory mode
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.Tab) && !InventoryModeOnly)
         {
             // Ak sme v inventory mode a ideme ho vypnúť:
             // voliteľne (toggle) najprv focusni najľavejšiu kartu (index 0) a až potom prejdime do collapsed layoutu.
@@ -103,7 +105,7 @@ public class InventoryManager : MonoBehaviour
         }
 
         // F = použitie focused karty (len keď je inventoryMode)
-        if (inventoryMode && Input.GetKeyDown(KeyCode.F))
+        if (inventoryMode && Input.GetKeyDown(KeyCode.F) && canUseCards)
         {
             UseFocusedCard();
         }
