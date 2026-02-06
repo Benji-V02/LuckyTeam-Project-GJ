@@ -24,6 +24,9 @@ public class InventoryManager : MonoBehaviour
     private bool inventoryMode = false;
     private int focusedIndex = 0;
 
+
+    [Header("Inventory Mode Exit")]
+    [SerializeField] private bool focusLeftmostBeforeExit = true;
     public static InventoryManager Instance { get; private set; }
 
     private void Awake()
@@ -72,13 +75,23 @@ public class InventoryManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             // Ak sme v inventory mode a ideme ho vypnúť:
-            // najprv focusni najľavejšiu kartu (index 0) a až potom prejdime do collapsed layoutu.
+            // voliteľne (toggle) najprv focusni najľavejšiu kartu (index 0) a až potom prejdime do collapsed layoutu.
             if (inventoryMode)
             {
                 if (exitInventoryRoutine != null)
                     StopCoroutine(exitInventoryRoutine);
 
-                exitInventoryRoutine = StartCoroutine(ExitInventoryModeSequence());
+                if (focusLeftmostBeforeExit)
+                {
+                    // Pred vypnutím: vycentruj najľavejšiu (index 0) a až potom prepneme do collapsed
+                    exitInventoryRoutine = StartCoroutine(ExitInventoryModeSequence());
+                }
+                else
+                {
+                    // Vypnutie okamžite bez "pre-focus" sekvencie
+                    inventoryMode = false;
+                    RefreshLayoutAnimated();
+                }
             }
             else
             {
