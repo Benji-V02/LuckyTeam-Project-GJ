@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 233ba3e43516cef4ea16edd14361d9e3
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 133049
+  packageName: SlimUI - Tech Menu
+  packageVersion: 1.0.2
+  assetPath: Assets/SlimUI/Tech Menu/Scripts/ToolTip.cs
+  uploadId: 317953

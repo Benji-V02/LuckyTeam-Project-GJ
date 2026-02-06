@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 046426e3a99c4d042b8a653d10c98652
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 133049
+  packageName: SlimUI - Tech Menu
+  packageVersion: 1.0.2
+  assetPath: Assets/SlimUI/Tech Menu/Shaders/BlurUI_Heavy.mat
+  uploadId: 317953

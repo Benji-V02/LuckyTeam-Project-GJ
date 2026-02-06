@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7c9ce9f26f9980d499fa91b1f4631b62
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 133049
+  packageName: SlimUI - Tech Menu
+  packageVersion: 1.0.2
+  assetPath: Assets/SlimUI/Tech Menu/Animations/Panels/BottomBar.controller
+  uploadId: 317953
