@@ -1854,7 +1854,7 @@ MonoBehaviour:
   lockMaxXZ: 1
   maxX: 9
   maxZ: 100
-  cameraDistance: 5
+  cameraDistance: 3
   cameraHeight: 2
   shoulderOffset: 0.5
   positionSmoothTime: 0.1

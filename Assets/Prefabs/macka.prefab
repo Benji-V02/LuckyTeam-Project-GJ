@@ -67,5 +67,31 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 219b6524a6e483c488f2b38088889e2e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -4504761043099625718}
   m_SourcePrefab: {fileID: 100100000, guid: 219b6524a6e483c488f2b38088889e2e, type: 3}
+--- !u!1 &9174345803620844403 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 219b6524a6e483c488f2b38088889e2e, type: 3}
+  m_PrefabInstance: {fileID: 8327361557707603490}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-4504761043099625718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9174345803620844403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f814bbcefe4154c4f9a21e3d96cde9fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemName: Item
+  itemSprite: {fileID: 21300000, guid: b3c3b1f2fec42f447a19c98db9ef7ece, type: 3}
+  interactionRadius: 2
+  interactKey: 101
+  showGizmo: 1
+  gizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

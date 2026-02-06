@@ -50,10 +50,36 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 030421f9cb995df47ae2d9bbb710a61b, type: 3}
       propertyPath: m_Name
-      value: cigareta 1
+      value: cigareta
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 030421f9cb995df47ae2d9bbb710a61b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -1123785339662436811}
   m_SourcePrefab: {fileID: 100100000, guid: 030421f9cb995df47ae2d9bbb710a61b, type: 3}
+--- !u!1 &6299038404998603360 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 030421f9cb995df47ae2d9bbb710a61b, type: 3}
+  m_PrefabInstance: {fileID: 6605593042691890993}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-1123785339662436811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6299038404998603360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f814bbcefe4154c4f9a21e3d96cde9fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemName: Item
+  itemSprite: {fileID: 21300000, guid: fafaf85e3fff3ed4a9b7a0b6fad77c2e, type: 3}
+  interactionRadius: 2
+  interactKey: 101
+  showGizmo: 1
+  gizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
