@@ -6,7 +6,6 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float damage = 20f;
     [SerializeField] private float attackRange = 3f;
     [SerializeField] private float attackCooldown = 0.5f;
-    [SerializeField] private float attackAngle = 90f; // Uhol útoku (90° = pred hráčom)
 
     [Header("Input")]
     [SerializeField] private KeyCode attackKey = KeyCode.Mouse0;
@@ -53,7 +52,7 @@ public class PlayerAttack : MonoBehaviour
             animator.SetTrigger("Attack");
             Debug.Log("Attack animation triggered!");
 
-            // Delay útoku podľa animácie (alebo pridaj Animation Event)
+            // Delay útoku podľa animácie
             StartCoroutine(DelayedAttack(0.3f));
         }
         else
@@ -76,28 +75,39 @@ public class PlayerAttack : MonoBehaviour
 
     private void Attack()
     {
-        // Nájdi všetkých nepriateľov v dosahu
-        Collider[] nearbyEnemies = Physics.OverlapSphere(transform.position, attackRange);
+        // Nájdi všetky objekty v dosahu
+        Collider[] nearbyObjects = Physics.OverlapSphere(transform.position, attackRange);
+
+        Debug.Log($"Počet objektov v dosahu: {nearbyObjects.Length}");
 
         Enemy closestEnemy = null;
         float closestDistance = attackRange;
 
-        foreach (Collider col in nearbyEnemies)
+        foreach (Collider col in nearbyObjects)
         {
-            Enemy enemy = col.GetComponent<Enemy>();
-            if (enemy != null)
-            {
-                float distance = Vector3.Distance(transform.position, enemy.transform.position);
-                Vector3 directionToEnemy = (enemy.transform.position - transform.position).normalized;
-                float angle = Vector3.Angle(transform.forward, directionToEnemy);
+            Debug.Log($"Nájdený objekt: {col.name}, Tag: {col.tag}");
 
-                if (distance <= attackRange && angle <= attackAngle / 2f)
+            // Kontrola tagu "Enemy"
+            if (col.CompareTag("Enemy"))
+            {
+                Debug.Log($"Objekt {col.name} má správny tag!");
+
+                Enemy enemy = col.GetComponent<Enemy>();
+                if (enemy != null)
                 {
-                    if (distance < closestDistance)
+                    float distance = Vector3.Distance(transform.position, enemy.transform.position);
+                    Debug.Log($"Vzdialenosť k {col.name}: {distance}");
+
+                    // Len vzdialenosť, žiadne uhly
+                    if (distance <= attackRange && distance < closestDistance)
                     {
                         closestDistance = distance;
                         closestEnemy = enemy;
                     }
+                }
+                else
+                {
+                    Debug.LogWarning($"Objekt {col.name} má tag Enemy, ale nemá Enemy komponent!");
                 }
             }
         }
@@ -105,6 +115,7 @@ public class PlayerAttack : MonoBehaviour
         // Útok na najbližšieho nepriateľa
         if (closestEnemy != null)
         {
+            Debug.Log($"Útočím na: {closestEnemy.name}");
             closestEnemy.TakeDamage(damage);
 
             // DAMAGE POPUP
@@ -117,8 +128,16 @@ public class PlayerAttack : MonoBehaviour
                 );
                 CameraShake.Instance.Shake(0.15f, 0.2f);
             }
+            else
+            {
+                Debug.LogWarning("DamagePopupManager.Instance je NULL!");
+            }
 
             Debug.Log($"HIT {closestEnemy.name} - Damage: {damage}");
+        }
+        else
+        {
+            Debug.Log("Žiadny nepriateľ v dosahu!");
         }
     }
 
@@ -126,20 +145,8 @@ public class PlayerAttack : MonoBehaviour
     {
         if (!showDebugGizmos) return;
 
-        // Dosah útoku
+        // Dosah útoku - sféra
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
-
-        // Kužeľ útoku (smer)
-        Gizmos.color = Color.yellow;
-        Vector3 forward = transform.forward * attackRange;
-
-        // Ľavá a pravá strana kužeľa
-        Vector3 leftBoundary = Quaternion.Euler(0, -attackAngle / 2f, 0) * forward;
-        Vector3 rightBoundary = Quaternion.Euler(0, attackAngle / 2f, 0) * forward;
-
-        Gizmos.DrawLine(transform.position, transform.position + forward);
-        Gizmos.DrawLine(transform.position, transform.position + leftBoundary);
-        Gizmos.DrawLine(transform.position, transform.position + rightBoundary);
     }
 }

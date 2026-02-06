@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
@@ -11,31 +11,47 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float maxHealth = 100f;
     private float currentHealth;
 
+    [Header("Combat")]
+    [SerializeField] private float attackRange = 2f;
+    [SerializeField] private float minDamage = 10f;
+    [SerializeField] private float maxDamage = 20f;
+    [SerializeField] private float attackCooldown = 1.5f;
+    private float lastAttackTime = 0f;
+
     [Header("References")]
     [SerializeField] private Transform player;
     [SerializeField] private HealthBar healthBar;
 
     private Rigidbody rb;
+    private PlayerStats playerStats;
+    private Animator animator;
 
     private void Start()
     {
-        // Inicializ·cia zdravia
         currentHealth = maxHealth;
-
-        // ZÌskaj Rigidbody komponent
         rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
 
-        // Ak player nie je nastaven˝, n·jdi ho automaticky
+        // Skontroluj Animator
+        if (animator == null)
+        {
+            Debug.LogWarning("Animator komponent nebol n√°jden√Ω na Enemy!");
+        }
+
         if (player == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null)
             {
                 player = playerObj.transform;
+                playerStats = playerObj.GetComponent<PlayerStats>();
             }
         }
+        else
+        {
+            playerStats = player.GetComponent<PlayerStats>();
+        }
 
-        // Aktualizuj healthbar
         if (healthBar != null)
         {
             healthBar.SetMaxHealth(maxHealth);
@@ -46,11 +62,15 @@ public class Enemy : MonoBehaviour
     {
         if (player == null) return;
 
-        // VypoËÌtaj vzdialenosù k hr·Ëovi
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-        // Ak je hr·Ë v dosahu a nie je prÌliö blÌzko
-        if (distanceToPlayer <= detectionRange && distanceToPlayer > stopDistance)
+        // Ak je hr√°ƒç v dosahu √∫toku
+        if (distanceToPlayer <= attackRange)
+        {
+            AttackPlayer();
+        }
+        // Ak je hr√°ƒç v dosahu detekcie ale nie v dosahu √∫toku
+        else if (distanceToPlayer <= detectionRange && distanceToPlayer > stopDistance)
         {
             MoveTowardsPlayer();
         }
@@ -58,13 +78,9 @@ public class Enemy : MonoBehaviour
 
     private void MoveTowardsPlayer()
     {
-        // VypoËÌtaj smer k hr·Ëovi
         Vector3 direction = (player.position - transform.position).normalized;
-
-        // Pohyb len v X a Z osi (2D horizont·lny pohyb)
         direction.y = 0;
 
-        // PosuÚ enemy pomocou Rigidbody (spr·vny spÙsob s fyzikou)
         if (rb != null)
         {
             Vector3 newPosition = rb.position + direction * moveSpeed * Time.deltaTime;
@@ -72,15 +88,60 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            // Fallback ak nieje Rigidbody
             transform.position += direction * moveSpeed * Time.deltaTime;
         }
 
-        // OtoËenie smerom k hr·Ëovi
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+        }
+    }
+
+    private void AttackPlayer()
+    {
+        // Skontroluj cooldown
+        if (Time.time - lastAttackTime >= attackCooldown)
+        {
+            if (playerStats != null)
+            {
+                // DEBUG - skontroluj Animator
+                if (animator != null)
+                {
+                    Debug.Log("‚úì Animator existuje");
+
+                    // Skontroluj ƒçi m√° parameter
+                    bool hasParameter = false;
+                    foreach (AnimatorControllerParameter param in animator.parameters)
+                    {
+                        if (param.name == "Attack")
+                        {
+                            hasParameter = true;
+                            Debug.Log($"‚úì Parameter 'Attack' n√°jden√Ω! Typ: {param.type}");
+                        }
+                    }
+
+                    if (!hasParameter)
+                    {
+                        Debug.LogError("‚úó Parameter 'Attack' NEBOL n√°jden√Ω v Animatore!");
+                    }
+
+                    // Trigger anim√°ciu
+                    animator.SetTrigger("Attack");
+                    Debug.Log("‚Üí SetTrigger('Attack') zavolan√Ω!");
+                }
+                else
+                {
+                    Debug.LogError("‚úó Animator je NULL!");
+                }
+
+                float damage = Random.Range(minDamage, maxDamage);
+                playerStats.TakeDamage(damage);
+
+                Debug.Log($"‚öîÔ∏è Enemy √∫toƒç√≠! Damage: {damage:F1}");
+
+                lastAttackTime = Time.time;
+            }
         }
     }
 
@@ -89,13 +150,11 @@ public class Enemy : MonoBehaviour
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        // Aktualizuj healthbar
         if (healthBar != null)
         {
             healthBar.SetHealth(currentHealth);
         }
 
-        // Ak zdravie je 0, zniËÌ enemy
         if (currentHealth <= 0)
         {
             Die();
@@ -104,11 +163,9 @@ public class Enemy : MonoBehaviour
 
     private void Die()
     {
-        // Tu mÙûeö pridaù anim·ciu smrti, efekty, atÔ.
         Destroy(gameObject);
     }
 
-    // Vizualiz·cia dosahu v editore
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
@@ -116,5 +173,8 @@ public class Enemy : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, stopDistance);
+
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
