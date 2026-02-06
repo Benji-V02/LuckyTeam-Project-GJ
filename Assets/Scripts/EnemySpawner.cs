@@ -341,4 +341,29 @@ public class EnemySpawner : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
     }
+
+    public void TriggerVictory()
+    {
+        StopAllCoroutines();
+        StopTimer();
+
+        Debug.Log("=== VICTORY! ===");
+
+        if (gameWinObject != null)
+        {
+            gameWinObject.SetActive(true);
+        }
+
+        if (winRawImage != null && winTexture != null)
+        {
+            winRawImage.texture = winTexture;
+        }
+
+        // Koniec hry
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        this.enabled = false;
+    }
 }
