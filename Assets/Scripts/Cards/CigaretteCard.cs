@@ -8,7 +8,7 @@ public class CigaretteCard : ItemCard
     [SerializeField] private int maxDamage = 60;
 
     [Header("Monochrome Filter")]
-    [SerializeField] private float filterDuration = 3f;
+    [SerializeField] private float filterDuration = 10f;
     [SerializeField] private string filterObjectName = "Vignette Filter";
 
     private Coroutine filterCoroutine;
@@ -53,9 +53,9 @@ public class CigaretteCard : ItemCard
             return;
         }
 
-        if (filterObj != null)
+        if (filter != null)
         {
-            filterObj.SetActive(true);
+            filter.gameObject.SetActive(true);
         }
     }
 
