@@ -102,6 +102,12 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
+        // F = použitie focused karty (len keď je inventoryMode)
+        if (inventoryMode && Input.GetKeyDown(KeyCode.F))
+        {
+            UseFocusedCard();
+        }
+
 
         if (!inventoryMode || itemCards.Count == 0)
             return;
@@ -188,6 +194,8 @@ public class InventoryManager : MonoBehaviour
             focusedIndex = 0;
 
         RefreshLayoutAnimated();
+
+        AttachCardLogicByName(newCard, itemName);
 
         Debug.Log($"✓ Item '{itemName}' added to inventory! Total items: {itemCards.Count}");
     }
@@ -372,4 +380,61 @@ public class InventoryManager : MonoBehaviour
         if (activeMoveCoroutines.ContainsKey(cardRect))
             activeMoveCoroutines[cardRect] = null;
     }
+
+    private void UseFocusedCard()
+    {
+        if (!inventoryMode) return;
+        if (itemCards.Count == 0) return;
+
+        focusedIndex = Mathf.Clamp(focusedIndex, 0, itemCards.Count - 1);
+        GameObject cardGO = itemCards[focusedIndex];
+
+        ItemCard card = cardGO.GetComponent<ItemCard>();
+        if (card == null)
+        {
+            Debug.LogWarning("Focused card has no ItemCard component!");
+            return;
+        }
+
+        // 1) použi
+        card.Use();
+
+        // 2) zmaž z itembaru (consume)
+        itemCards.RemoveAt(focusedIndex);
+        Destroy(cardGO);
+
+        // 3) oprav focus
+        if (focusedIndex >= itemCards.Count)
+            focusedIndex = itemCards.Count - 1;
+
+        focusedIndex = Mathf.Max(0, focusedIndex);
+
+        RefreshLayoutAnimated();
+    }
+
+    private void AttachCardLogicByName(GameObject cardGO, string itemName)
+    {
+        // normalizuj názov
+        string key = (itemName ?? "").Trim().ToLowerInvariant();
+
+        // ak by prefab náhodou mal ItemCard, odstráň ho (aby neboli 2 logiky)
+        ItemCard existing = cardGO.GetComponent<ItemCard>();
+        if (existing != null)
+            Destroy(existing);
+
+        // vyber typ podľa názvu
+        switch (key)
+        {
+            case "bomb":
+            case "bomba":
+                cardGO.AddComponent<BombCard>();
+                break;
+
+            default:
+                // fallback – aby UseFocusedCard vždy našlo ItemCard
+                cardGO.AddComponent<ItemCard>();
+                break;
+        }
+    }
+
 }
