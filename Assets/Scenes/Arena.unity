@@ -175,8 +175,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 6801289555781970507, guid: 45110a82aa25f8a478e1245d8dd9a82e, type: 3}
   bossPrefab: {fileID: 6269392650319931305, guid: 0aa33a81fd1581941a12e1483e80c87c, type: 3}
-  pauseBetweenStages: 15
+  pauseBetweenStages: 5
   timerText: {fileID: 1086304667}
+  monochromeFilterObject: {fileID: 1193129367}
 --- !u!1 &351353227
 GameObject:
   m_ObjectHideFlags: 0
@@ -822,6 +823,67 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1086304665}
   m_CullTransparentMesh: 1
+--- !u!1001 &1141492972
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1611000963}
+    m_Modifications:
+    - target: {fileID: 107734325919069285, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_Name
+      value: Monochrome Filter
+      objectReference: {fileID: 0}
+    - target: {fileID: 107734325919069285, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
 --- !u!1 &1163615304
 GameObject:
   m_ObjectHideFlags: 0
@@ -868,6 +930,16 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1193129367 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 107734325919069285, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+  m_PrefabInstance: {fileID: 1141492972}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1193129369 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2691684372785860537, guid: 9c72141a797b083499761efb4cdc5e8c, type: 3}
+  m_PrefabInstance: {fileID: 1141492972}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1266265802
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1903,7 +1975,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -1995,7 +2067,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 3, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1193129369}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1714364792

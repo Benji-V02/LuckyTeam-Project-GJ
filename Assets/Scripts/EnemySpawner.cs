@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +16,9 @@ public class EnemySpawner : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI timerText;
 
+    [Header("Camera Filter")]
+    public GameObject monochromeFilterObject; // PretiahnuÅ¥ MonochromeFilter GameObject sem
+
     private Transform[] spawnPoints;
     private List<GameObject> aliveEnemies = new List<GameObject>();
 
@@ -26,14 +29,21 @@ public class EnemySpawner : MonoBehaviour
 
     void Start()
     {
-        // Automaticky nájde všetky spawn pointy
+        // Automaticky nÃ¡jde vÅ¡etky spawn pointy
         spawnPoints = GetComponentsInChildren<Transform>();
 
-        // Skry timer na zaèiatku
+        // Skry timer na zaÄiatku
         if (timerText != null)
             timerText.gameObject.SetActive(false);
 
-        // Zaène prvú stage
+        // MonochromeFilter musÃ­ byÅ¥ VYPNUTÃ na zaÄiatku
+        if (monochromeFilterObject != null)
+        {
+            monochromeFilterObject.SetActive(false);
+            Debug.Log("âœ“ MonochromeFilter vypnutÃ½ na zaÄiatku");
+        }
+
+        // ZaÄne prvÃº stage
         StartCoroutine(GameLoop());
     }
 
@@ -62,7 +72,7 @@ public class EnemySpawner : MonoBehaviour
             int seconds = Mathf.FloorToInt(currentTimer % 60);
             timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
 
-            // Èervená farba keï zostáva menej ako 10 sekúnd
+            // ÄŒervenÃ¡ farba keÄ zostÃ¡va menej ako 10 sekÃºnd
             if (currentTimer <= 10f)
             {
                 timerText.color = Color.red;
@@ -107,16 +117,13 @@ public class EnemySpawner : MonoBehaviour
             timerText.text = "GAME OVER!";
             timerText.color = Color.red;
         }
-
-        // Tu môeš prida vlastnú game over logiku
-        // Napr. naèíta game over scénu, zobrazi menu, atï.
     }
 
     IEnumerator GameLoop()
     {
         // STAGE 1
         yield return StartCoroutine(RunStage1());
-        StopTimer(); // Timer sa vypne po Stage 1
+        StopTimer();
         yield return new WaitForSeconds(pauseBetweenStages);
 
         // STAGE 2
@@ -126,7 +133,7 @@ public class EnemySpawner : MonoBehaviour
         // STAGE 3
         yield return StartCoroutine(RunStage3());
 
-        Debug.Log("Všetky stages dokonèené!");
+        Debug.Log("VÅ¡etky stages dokonÄenÃ©!");
     }
 
     // ==================== STAGE 1 ====================
@@ -135,20 +142,14 @@ public class EnemySpawner : MonoBehaviour
         currentStage = 1;
         Debug.Log("=== STAGE 1 START ===");
 
-        // Wave 1: 3 enemy naraz - 60 sekúnd
+        // Wave 1: 3 enemy naraz - 60 sekÃºnd
         currentWave = 1;
         StartTimer(60f);
         SpawnMultipleEnemies(3);
         yield return StartCoroutine(WaitForAllEnemiesDead());
 
-        // Wave 2: 5 enemy naraz - 45 sekúnd
+        // Wave 2: Boss - 30 sekÃºnd
         currentWave = 2;
-        StartTimer(45f);
-        SpawnMultipleEnemies(5);
-        yield return StartCoroutine(WaitForAllEnemiesDead());
-
-        // Wave 3: Boss - 30 sekúnd
-        currentWave = 3;
         StartTimer(30f);
         SpawnBoss();
         yield return StartCoroutine(WaitForAllEnemiesDead());
@@ -162,22 +163,24 @@ public class EnemySpawner : MonoBehaviour
         currentStage = 2;
         Debug.Log("=== STAGE 2 START ===");
 
-        // Wave 1: 5 enemy naraz
+        // Wave 1: 2 enemy naraz
         currentWave = 1;
-        SpawnMultipleEnemies(5);
+        SpawnMultipleEnemies(2);
         yield return StartCoroutine(WaitForAllEnemiesDead());
 
-        // Wave 2: 5 enemy naraz
+        // Wave 2: Boss
         currentWave = 2;
-        SpawnMultipleEnemies(5);
-        yield return StartCoroutine(WaitForAllEnemiesDead());
-
-        // Wave 3: Boss
-        currentWave = 3;
         SpawnBoss();
         yield return StartCoroutine(WaitForAllEnemiesDead());
 
-        // Po wave 3 zaènú random spawny (1-5 sekúnd)
+        // ğŸ¬ ZAPNI ÄŒIERNOBIELY FILTER
+        if (monochromeFilterObject != null)
+        {
+            monochromeFilterObject.SetActive(true);
+            Debug.Log("âœ… MonochromeFilter ZAPNUTÃ - Äiernobielo!");
+        }
+
+        // Po wave 2 zaÄnÃº random spawny (1-5 sekÃºnd)
         yield return StartCoroutine(RandomSpawnLoop(1f, 5f));
     }
 
@@ -187,22 +190,24 @@ public class EnemySpawner : MonoBehaviour
         currentStage = 3;
         Debug.Log("=== STAGE 3 START ===");
 
-        // Wave 1: 5 enemy naraz
+        // Wave 1: 2 enemy naraz
         currentWave = 1;
-        SpawnMultipleEnemies(5);
+        SpawnMultipleEnemies(2);
         yield return StartCoroutine(WaitForAllEnemiesDead());
 
-        // Wave 2: 10 enemy naraz
+        // Wave 2: Boss
         currentWave = 2;
-        SpawnMultipleEnemies(10);
-        yield return StartCoroutine(WaitForAllEnemiesDead());
-
-        // Wave 3: Boss
-        currentWave = 3;
         SpawnBoss();
         yield return StartCoroutine(WaitForAllEnemiesDead());
 
-        // Po wave 3 zaènú random spawny (1-3 sekundy)
+        // ğŸ¬ VYPNI ÄŒIERNOBIELY FILTER
+        if (monochromeFilterObject != null)
+        {
+            monochromeFilterObject.SetActive(false);
+            Debug.Log("âœ… MonochromeFilter VYPNUTÃ - farby spÃ¤Å¥!");
+        }
+
+        // Po wave 2 zaÄnÃº random spawny (1-3 sekundy)
         yield return StartCoroutine(RandomSpawnLoop(1f, 3f));
     }
 
@@ -211,17 +216,14 @@ public class EnemySpawner : MonoBehaviour
     {
         Debug.Log($"Stage {currentStage} - Wave {currentWave}: Spawning {count} enemies");
 
-        // Vytvor zoznam dostupnıch spawn pointov (bez indexu 0 - parent)
         List<int> availableSpawnPoints = new List<int>();
         for (int i = 1; i < spawnPoints.Length; i++)
         {
             availableSpawnPoints.Add(i);
         }
 
-        // Spawn enemies na rôznych spawn pointoch
         for (int i = 0; i < count; i++)
         {
-            // Ak u nie sú dostupné spawn pointy, resetuj zoznam
             if (availableSpawnPoints.Count == 0)
             {
                 for (int j = 1; j < spawnPoints.Length; j++)
@@ -230,14 +232,10 @@ public class EnemySpawner : MonoBehaviour
                 }
             }
 
-            // Vyber náhodnı dostupnı spawn point
             int randomListIndex = Random.Range(0, availableSpawnPoints.Count);
             int spawnPointIndex = availableSpawnPoints[randomListIndex];
-
-            // Odstráò pouitı spawn point zo zoznamu
             availableSpawnPoints.RemoveAt(randomListIndex);
 
-            // Spawn enemy
             Transform spawnPoint = spawnPoints[spawnPointIndex];
             GameObject enemy = Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
             aliveEnemies.Add(enemy);
@@ -246,11 +244,8 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemy()
     {
-        // Vyber náhodnı spawn point (preskoèí index 0 - parent)
         int randomIndex = Random.Range(1, spawnPoints.Length);
         Transform spawnPoint = spawnPoints[randomIndex];
-
-        // Spawn enemy
         GameObject enemy = Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
         aliveEnemies.Add(enemy);
     }
@@ -258,17 +253,12 @@ public class EnemySpawner : MonoBehaviour
     void SpawnBoss()
     {
         Debug.Log($"Stage {currentStage} - Wave {currentWave}: Spawning BOSS!");
-
-        // Vyber náhodnı spawn point
         int randomIndex = Random.Range(1, spawnPoints.Length);
         Transform spawnPoint = spawnPoints[randomIndex];
-
-        // Spawn boss
         GameObject boss = Instantiate(bossPrefab, spawnPoint.position, spawnPoint.rotation);
         aliveEnemies.Add(boss);
     }
 
-    // ==================== RANDOM SPAWN LOOP ====================
     IEnumerator RandomSpawnLoop(float minInterval, float maxInterval)
     {
         Debug.Log($"Starting random spawn loop (interval: {minInterval}-{maxInterval}s)");
@@ -277,26 +267,21 @@ public class EnemySpawner : MonoBehaviour
         {
             float randomWait = Random.Range(minInterval, maxInterval);
             yield return new WaitForSeconds(randomWait);
-
             SpawnEnemy();
         }
     }
 
-    // ==================== WAIT FOR ENEMIES DEAD ====================
     IEnumerator WaitForAllEnemiesDead()
     {
         while (true)
         {
-            // Kontrola, èi timer nevypršal
             if (!timerActive && currentStage == 1)
             {
-                yield break; // Game over u sa zavolal
+                yield break;
             }
 
-            // Odstráò null references (mertve enemies)
             aliveEnemies.RemoveAll(enemy => enemy == null);
 
-            // Ak sú všetci màtvi, pokraèuj
             if (aliveEnemies.Count == 0)
             {
                 Debug.Log($"Stage {currentStage} - Wave {currentWave}: All enemies defeated!");

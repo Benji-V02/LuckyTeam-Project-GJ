@@ -137,4 +137,5 @@ public class ThirdPersonCamera : MonoBehaviour
             Cursor.visible = false;
         }
     }
+
 }
