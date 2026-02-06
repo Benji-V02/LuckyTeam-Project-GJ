@@ -19,9 +19,9 @@ public class Enemy : MonoBehaviour
     private float lastAttackTime = 0f;
 
     [Header("References")]
-    [SerializeField] private Transform player;
     [SerializeField] private HealthBar healthBar;
 
+    private Transform player;
     private Rigidbody rb;
     private PlayerStats playerStats;
     private Animator animator;
@@ -38,19 +38,8 @@ public class Enemy : MonoBehaviour
             Debug.LogWarning("Animator komponent nebol nájdený na Enemy!");
         }
 
-        if (player == null)
-        {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-            {
-                player = playerObj.transform;
-                playerStats = playerObj.GetComponent<PlayerStats>();
-            }
-        }
-        else
-        {
-            playerStats = player.GetComponent<PlayerStats>();
-        }
+        // Automaticky nájdi hráča
+        FindPlayer();
 
         if (healthBar != null)
         {
@@ -58,9 +47,91 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    private void FindPlayer()
+    {
+        // Pokus 1: Hľadaj priamo objekt s menom "Player"
+        GameObject playerObj = GameObject.Find("Player");
+
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+            playerStats = playerObj.GetComponent<PlayerStats>();
+            Debug.Log($"✓ Hráč nájdený pomocou mena 'Player': {playerObj.name}");
+            return;
+        }
+
+        // Pokus 2: Hľadaj podľa tagu "Player" a potom skontroluj či má rodiča
+        GameObject taggedObj = GameObject.FindGameObjectWithTag("Player");
+
+        if (taggedObj != null)
+        {
+            // Ak má tag objekt rodiča s menom "Player", použi rodiča
+            if (taggedObj.transform.parent != null && taggedObj.transform.parent.name == "Player")
+            {
+                player = taggedObj.transform.parent;
+                playerStats = player.GetComponent<PlayerStats>();
+                Debug.Log($"✓ Hráč nájdený cez tag - použitý rodič 'Player'");
+                return;
+            }
+            // Inak použi samotný objekt s tagom
+            else
+            {
+                player = taggedObj.transform;
+                playerStats = taggedObj.GetComponent<PlayerStats>();
+                Debug.Log($"✓ Hráč nájdený pomocou tagu 'Player': {taggedObj.name}");
+                return;
+            }
+        }
+
+        // Pokus 3: Hľadaj podľa layeru "Player"
+        int playerLayer = LayerMask.NameToLayer("Player");
+        if (playerLayer != -1)
+        {
+            GameObject[] allObjects = FindObjectsOfType<GameObject>();
+            foreach (GameObject obj in allObjects)
+            {
+                if (obj.layer == playerLayer)
+                {
+                    // Ak má objekt rodiča s menom "Player", použi rodiča
+                    if (obj.transform.parent != null && obj.transform.parent.name == "Player")
+                    {
+                        player = obj.transform.parent;
+                        playerStats = player.GetComponent<PlayerStats>();
+                        Debug.Log($"✓ Hráč nájdený cez layer - použitý rodič 'Player'");
+                        return;
+                    }
+                    else
+                    {
+                        player = obj.transform;
+                        playerStats = obj.GetComponent<PlayerStats>();
+                        Debug.Log($"✓ Hráč nájdený pomocou layeru 'Player': {obj.name}");
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Pokus 4: Hľadaj PlayerStats komponent
+        PlayerStats foundStats = FindObjectOfType<PlayerStats>();
+        if (foundStats != null)
+        {
+            player = foundStats.transform;
+            playerStats = foundStats;
+            Debug.Log($"✓ Hráč nájdený pomocou PlayerStats komponenta: {foundStats.gameObject.name}");
+            return;
+        }
+
+        Debug.LogError("✗ Hráč nebol nájdený! Skontroluj či existuje objekt s menom 'Player'.");
+    }
+
     private void Update()
     {
-        if (player == null) return;
+        // Ak hráč nebol nájdený, skús ho nájsť znova
+        if (player == null)
+        {
+            FindPlayer();
+            return;
+        }
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
