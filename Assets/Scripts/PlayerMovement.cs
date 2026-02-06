@@ -1,17 +1,18 @@
 using UnityEngine;
 
 /// <summary>
-/// Kompletn˝ Player Movement s Animator Parameters
-/// OPRAVEN¡ VERZIA - Synchronizovan˝ Dash s anim·ciou
-/// BEZ isSprinting parametra - len isMoving
+/// Kompletn√Ω Player Movement s Animator Parameters a Stamina syst√©mom
+/// OPRAVEN√Å VERZIA - Synchronizovan√Ω Dash s anim√°ciou + Stamina
 /// </summary>
 public class PlayerMovement : MonoBehaviour
 {
+
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 5f;
     [SerializeField] private float sprintSpeed = 8f;
     [SerializeField] private float groundDrag = 5f;
     [SerializeField] private float airMultiplier = 0.4f;
+
 
     [Header("Jump")]
     [SerializeField] private float jumpForce = 12f;
@@ -29,8 +30,15 @@ public class PlayerMovement : MonoBehaviour
     private float dashTimer;
     private Vector3 dashDirection;
 
+    [Header("Stamina Settings")]
+    [SerializeField] private float sprintStaminaCost = 15f; // za sekundu
+    [SerializeField] private float dashStaminaCost = 25f; // jednorazovo
+    [SerializeField] private float jumpStaminaCost = 10f; // jednorazovo
+    private bool isSprinting = false;
+
     [Header("Ground Check")]
     [SerializeField] private float playerHeight = 2f;
+    [SerializeField] private float playerRayCastOffset = 0.1f;
     [SerializeField] private LayerMask groundLayer;
     private bool isGrounded;
 
@@ -42,16 +50,20 @@ public class PlayerMovement : MonoBehaviour
     [Header("Animation")]
     [SerializeField] private Animator animator;
 
+    [Header("References")]
+    [SerializeField] private PlayerStats playerStats;
+
+    private Vector3 velocity;
+
     // References
-    private Rigidbody rb;
+    private CharacterController controller;
     private Vector3 moveDirection;
     private float horizontalInput;
     private float verticalInput;
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;
+        controller = GetComponent<CharacterController>();
 
         // Get animator if not assigned
         if (animator == null)
@@ -59,26 +71,40 @@ public class PlayerMovement : MonoBehaviour
             animator = GetComponentInChildren<Animator>();
             if (animator == null)
             {
-                UnityEngine.Debug.LogWarning("Animator not found! Please assign it in the inspector.");
+                Debug.LogWarning("Animator not found! Please assign it in the inspector.");
+            }
+        }
+
+        // Get PlayerStats if not assigned
+        if (playerStats == null)
+        {
+            playerStats = GetComponent<PlayerStats>();
+            if (playerStats == null)
+            {
+                Debug.LogError("PlayerStats component not found! Please add PlayerStats to the player.");
             }
         }
     }
 
     private void Update()
     {
+        
         // Ground check
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, groundLayer);
+        isGrounded = Physics.Raycast(transform.position + Vector3.up * playerRayCastOffset, Vector3.down, playerHeight * 0.5f + 0.2f, groundLayer);
+        if (isGrounded){
+            if (velocity.y < 0 )
+            {
+                velocity.y = -2f; // Mal√Ω negativn√≠ velocity pro lep≈°√≠ p≈ôilnavost k zemi
+            }
+        }
+        velocity.y += gravity * Time.deltaTime;
 
         GetInput();
-        SpeedControl();
+        HandleSprinting();
+        MovePlayer();
         UpdateAnimationParameters();
 
-        // Handle drag
-        if (isGrounded && !isDashing)
-            rb.linearDamping = groundDrag;
-        else
-            rb.linearDamping = 0;
-
+    
         // Handle dash timer
         if (isDashing)
         {
@@ -91,28 +117,66 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
-    {
-        MovePlayer();
-    }
-
     private void GetInput()
     {
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        // Jump
+        // Jump - kontrola staminy
         if (Input.GetKeyDown(jumpKey) && readyToJump && isGrounded)
         {
-            readyToJump = false;
-            Jump();
-            Invoke(nameof(ResetJump), jumpCooldown);
+            if (playerStats.UseStamina(jumpStaminaCost))
+            {
+                readyToJump = false;
+                Jump();
+                Invoke(nameof(ResetJump), jumpCooldown);
+            }
+            else
+            {
+                Debug.Log("Nedostatok staminy na skok!");
+            }
         }
 
-        // Dash
+        // Dash - kontrola staminy
         if (Input.GetKeyDown(dashKey) && canDash && !isDashing)
         {
-            Dash();
+            if (playerStats.UseStamina(dashStaminaCost))
+            {
+                Dash();
+            }
+            else
+            {
+                Debug.Log("Nedostatok staminy na dash!");
+            }
+        }
+    }
+
+    private void HandleSprinting()
+    {
+        bool isMoving = horizontalInput != 0 || verticalInput != 0;
+        bool wantsToSprint = Input.GetKey(sprintKey) && isMoving && isGrounded;
+
+        // Ak chce sprintova≈• a m√° staminu
+        if (wantsToSprint && playerStats.currentStamina > 0)
+        {
+            // Spotrebuj staminu
+            if (playerStats.UseStamina(sprintStaminaCost * Time.deltaTime))
+            {
+                isSprinting = true;
+                playerStats.StopStaminaRegen(); // Zastav regener√°ciu poƒças sprintu
+            }
+            else
+            {
+                // Nedostatok staminy - presta≈• sprintova≈•
+                isSprinting = false;
+                playerStats.StartStaminaRegen();
+            }
+        }
+        else
+        {
+            // Nie je dr≈æan√Ω sprint key alebo sa neh√Ωbe
+            isSprinting = false;
+            playerStats.StartStaminaRegen();
         }
     }
 
@@ -120,86 +184,88 @@ public class PlayerMovement : MonoBehaviour
     {
         // Calculate movement direction
         moveDirection = transform.forward * verticalInput + transform.right * horizontalInput;
-
-        // Dash movement - synchronizovan˝ s anim·ciou
+        controller.Move((velocity) * Time.deltaTime);
+        // Dash movement - synchronizovan√Ω s anim√°ciou
         if (isDashing)
         {
-            // Pouûitie AnimationCurve pre plynul˝ dash
+            // Pou≈æitie AnimationCurve pre plynul√Ω dash
             float dashProgress = dashTimer / dashDuration;
             float curveValue = dashCurve.Evaluate(dashProgress);
 
-            // Aplikuj dash silu podæa krivky
+            // Aplikuj dash silu podƒæa krivky
             Vector3 dashVelocity = dashDirection * dashSpeed * curveValue;
-            rb.linearVelocity = new Vector3(dashVelocity.x, rb.linearVelocity.y, dashVelocity.z);
+            controller.Move(dashVelocity * Time.deltaTime);
             return;
         }
 
-        // Determine current speed (sprint alebo walk)
-        float currentSpeed = Input.GetKey(sprintKey) ? sprintSpeed : walkSpeed;
+        // Determine current speed (sprint alebo walk) - len ak m√° staminu
+        float currentSpeed = isSprinting ? sprintSpeed : walkSpeed;
 
         // On ground
         if (isGrounded)
         {
-            rb.AddForce(moveDirection.normalized * currentSpeed * 10f, ForceMode.Force);
-        }
-        // In air
-        else
-        {
-            rb.AddForce(moveDirection.normalized * currentSpeed * 10f * airMultiplier, ForceMode.Force);
+            controller.Move((moveDirection) * Time.deltaTime * currentSpeed);
         }
 
-        // Apply custom gravity for better jump feel
-        if (!isGrounded)
-        {
-            rb.AddForce(Vector3.up * gravity, ForceMode.Acceleration);
-        }
+        
+        // // In air
+        // else
+        // {
+        //     controller.AddForce(moveDirection.normalized * currentSpeed * 10f * airMultiplier, ForceMode.Force);
+        // }
+
+        // // Apply custom gravity for better jump feel
+        // if (!isGrounded)
+        // {
+        //     controller.AddForce(Vector3.up * gravity, ForceMode.Acceleration);
+        // }
     }
 
-    private void SpeedControl()
-    {
-        if (isDashing) return;
+    // private void SpeedControl()
+    // {
+    //     if (isDashing) return;
 
-        Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+    //     Vector3 flatVel = new Vector3(controller.linearVelocity.x, 0f, controller.linearVelocity.z);
 
-        // Limit velocity based on sprint or walk
-        float currentSpeed = Input.GetKey(sprintKey) ? sprintSpeed : walkSpeed;
+    //     // Limit velocity based on sprint or walk
+    //     float currentSpeed = isSprinting ? sprintSpeed : walkSpeed;
 
-        if (flatVel.magnitude > currentSpeed)
-        {
-            Vector3 limitedVel = flatVel.normalized * currentSpeed;
-            rb.linearVelocity = new Vector3(limitedVel.x, rb.linearVelocity.y, limitedVel.z);
-        }
-    }
+    //     if (flatVel.magnitude > currentSpeed)
+    //     {
+    //         Vector3 limitedVel = flatVel.normalized * currentSpeed;
+    //         controller.linearVelocity = new Vector3(limitedVel.x, controller.linearVelocity.y, limitedVel.z);
+    //     }
+    // }
 
     private void UpdateAnimationParameters()
     {
         if (animator == null) return;
 
-        // Zistiù Ëi sa hr·Ë pohybuje
+        // Zisti≈• ƒçi sa hr√°ƒç pohybuje
         bool isMoving = horizontalInput != 0 || verticalInput != 0;
 
-        // Calculate speed for blend trees (ak pouûÌvaö)
-        Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        // Calculate speed for blend trees
+        Vector3 flatVel = new Vector3(controller.velocity.x, 0f, controller.velocity.z);
         float speed = flatVel.magnitude;
 
-        // Nastaviù Bool parameters (BEZ isSprinting)
+        // Nastavi≈• Bool parameters
         animator.SetBool("isMoving", isMoving);
         animator.SetBool("isGrounded", isGrounded);
         animator.SetBool("isDashing", isDashing);
 
-        // Nastaviù Float parameter pre speed
-        // Animator Controller pouûije t˙to hodnotu na rozlÌöenie walk vs sprint
+        // Nastavi≈• Float parameter pre speed
         animator.SetFloat("Speed", speed);
     }
 
     private void Jump()
     {
         // Reset y velocity
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        velocity.y = 0f;
 
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+        //controller.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+        velocity.y += jumpForce;
 
-        // TRIGGER jump anim·ciu
+        // TRIGGER jump anim√°ciu
         if (animator != null)
         {
             animator.SetTrigger("Jump");
@@ -215,7 +281,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (moveDirection == Vector3.zero) return;
 
-        // Uloû smer dashu na zaËiatku
+        // Ulo≈æ smer dashu na zaƒçiatku
         dashDirection = moveDirection.normalized;
 
         canDash = false;
@@ -223,9 +289,9 @@ public class PlayerMovement : MonoBehaviour
         dashTimer = 0f;
 
         // Reset y velocity for consistent dash
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        velocity.y = 0f;
 
-        // TRIGGER dash anim·ciu
+        // TRIGGER dash anim√°ciu
         if (animator != null)
         {
             animator.SetTrigger("Dash");
@@ -243,6 +309,6 @@ public class PlayerMovement : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = isGrounded ? Color.green : Color.red;
-        Gizmos.DrawLine(transform.position, transform.position + Vector3.down * (playerHeight * 0.5f + 0.2f));
+        Gizmos.DrawLine(transform.position + Vector3.up * playerRayCastOffset, transform.position + Vector3.down * (playerHeight * 0.5f + 0.2f));
     }
 }
