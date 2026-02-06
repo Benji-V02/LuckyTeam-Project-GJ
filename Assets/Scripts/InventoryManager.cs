@@ -447,6 +447,22 @@ public class InventoryManager : MonoBehaviour
                 cardGO.AddComponent<KonvickaCard>();
                 break;
 
+            case "furik":
+            case "card":
+                cardGO.AddComponent<FurikCard>();
+                break;
+
+            case "white flag":
+            case "whiteflag":
+            case "flag":
+                cardGO.AddComponent<WhiteFlag>();
+                break;
+
+            case "apple":
+            case "jablko":
+                cardGO.AddComponent<AppleCard>();
+                break;
+
 
             default:
                 // fallback – aby UseFocusedCard vždy našlo ItemCard

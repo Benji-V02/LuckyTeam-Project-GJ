@@ -38,6 +38,10 @@ public class SimplePlayerMovement : MonoBehaviour
     private Vector3 moveDirection;
     private Vector3 velocity;
     private float gravity = -9.81f;
+    
+    // Speed boost (napr. z karty/itemu)
+    private float speedBoostMultiplier = 1f;
+    private Coroutine speedBoostRoutine;
 
     private void Start()
     {
@@ -163,6 +167,7 @@ public class SimplePlayerMovement : MonoBehaviour
 
         // Určí aktuálnu rýchlosť (sprint alebo walk)
         float currentSpeed = isSprinting ? sprintSpeed : walkSpeed;
+        currentSpeed *= speedBoostMultiplier;
 
         // Silnejšia downward sila pre lepšie lezenie po schodoch
         if (isGrounded && velocity.y < 0)
@@ -194,6 +199,34 @@ public class SimplePlayerMovement : MonoBehaviour
         animator.SetFloat("Speed", speed);
     }
 
+
+
+// Dočasne zvýši rýchlosť hráča (multiplier = 1.8f znamená +80%)
+public void BoostSpeed(float multiplier, float duration)
+{
+    if (multiplier <= 0f) return;
+
+    speedBoostMultiplier = multiplier;
+
+    if (speedBoostRoutine != null)
+        StopCoroutine(speedBoostRoutine);
+
+    if (duration <= 0f)
+    {
+        speedBoostMultiplier = 1f;
+        speedBoostRoutine = null;
+        return;
+    }
+
+    speedBoostRoutine = StartCoroutine(ResetSpeedBoostAfter(duration));
+}
+
+private System.Collections.IEnumerator ResetSpeedBoostAfter(float duration)
+{
+    yield return new WaitForSeconds(duration);
+    speedBoostMultiplier = 1f;
+    speedBoostRoutine = null;
+}
     // Vizualizácia ground check v editore
     private void OnDrawGizmos()
     {

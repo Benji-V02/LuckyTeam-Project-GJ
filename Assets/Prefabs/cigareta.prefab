@@ -77,7 +77,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f814bbcefe4154c4f9a21e3d96cde9fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemName: Item
+  itemName: cigarette
   itemSprite: {fileID: 21300000, guid: fafaf85e3fff3ed4a9b7a0b6fad77c2e, type: 3}
   interactionRadius: 2
   interactKey: 101
