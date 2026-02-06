@@ -7,55 +7,53 @@ public class CigaretteCard : ItemCard
     [SerializeField] private int minDamage = 20;
     [SerializeField] private int maxDamage = 60;
 
-    [Header("Monochrome Effect")]
-    [SerializeField] private float filterDuration = 10f;
-    [SerializeField] private string filterObjectName = "Vignette filter";
+    [Header("Monochrome Filter")]
+    [SerializeField] private float filterDuration = 3f;
+    [SerializeField] private string filterObjectName = "Vignette Filter";
+
+    private Coroutine filterCoroutine;
 
     public override void Use()
     {
-        Debug.Log($"🚬 Cigarette called");
         ApplyDamageToPlayer();
-        StartCoroutine(ApplyMonochromeEffect());
+        StartMonochromeEffect();
     }
 
     private void ApplyDamageToPlayer()
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player == null)
-        {
-            Debug.LogWarning("CigaretteCard: Player tag not found!");
-            return;
-        }
+        if (player == null) return;
 
-        PlayerStats health =
+        PlayerStats stats =
             player.GetComponent<PlayerStats>() ??
             player.GetComponentInChildren<PlayerStats>() ??
             player.GetComponentInParent<PlayerStats>();
 
-        if (health == null)
+        if (stats == null) return;
+
+        int damage = Random.Range(minDamage, maxDamage + 1);
+        stats.TakeDamage(damage);
+
+        Debug.Log($"🚬 Cigarette: -{damage} HP");
+    }
+
+    private void StartMonochromeEffect()
+    {
+        GameObject cam = GameObject.FindGameObjectWithTag("MainCamera");
+        if (cam == null)
         {
-            Debug.LogWarning("CigaretteCard: PlayerStats not found on Player (or children/parents)!");
+            Debug.LogWarning("CigaretteCard: Camera not found (tag: Camera)");
             return;
         }
 
-        int damage = Random.Range(minDamage, maxDamage + 1);
-        health.TakeDamage(damage);
-
-        Debug.Log($"🚬 Cigarette: Player lost {damage} HP. Now HP = {health.currentHealth}");
-    }
-
-    private IEnumerator ApplyMonochromeEffect()
-    {
-        GameObject cam = GameObject.FindGameObjectWithTag("MainCamera");
-        if (cam == null) yield break;
-
         Transform filter = FindDeepChild(cam.transform, filterObjectName);
-        if (filter == null) yield break;
+        if (filter == null)
+        {
+            Debug.LogWarning($"CigaretteCard: '{filterObjectName}' not found under Camera");
+            return;
+        }
 
-        filter.gameObject.SetActive(true);
-        yield return new WaitForSeconds(filterDuration);
-        if (filter != null)
-            filter.gameObject.SetActive(false);
+        filterObj.SetActive(true);
     }
 
     private Transform FindDeepChild(Transform parent, string name)
@@ -65,9 +63,9 @@ public class CigaretteCard : ItemCard
             if (child.name == name)
                 return child;
 
-            Transform result = FindDeepChild(child, name);
-            if (result != null)
-                return result;
+            Transform found = FindDeepChild(child, name);
+            if (found != null)
+                return found;
         }
         return null;
     }
