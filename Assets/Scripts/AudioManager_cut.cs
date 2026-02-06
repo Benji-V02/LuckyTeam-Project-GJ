@@ -14,7 +14,7 @@ public class AudioManager_cut : MonoBehaviour
     {
         // Background menu music (quiet)
         musicSource.clip = menu;
-        musicSource.volume = 0.2f;   // jemne do pozadia
+        musicSource.volume = 0.1f;   // jemne do pozadia
         musicSource.loop = true;
         musicSource.Play();
 
