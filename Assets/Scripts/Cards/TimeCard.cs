@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BombCard : ItemCard
+public class TimeCard : ItemCard
 {
     public override void Use()
     {
