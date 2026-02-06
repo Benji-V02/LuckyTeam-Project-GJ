@@ -12,6 +12,7 @@ public class AudioManager : MonoBehaviour
 
     private void Start(){
         musicSource.clip = gether;
-        musicSource.Play();
+        if (PlayerPrefs.GetInt("MusicEnabled", 1) == 1)
+            musicSource.Play();
     }
 }
